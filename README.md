@@ -1,4 +1,4 @@
-# TravelEase Contact Form — Serverless AWS Solution
+# TravelEase Contact Form - Serverless AWS Solution
 
 A serverless contact form system built for TravelEase Inc., a fictional travel agency transitioning from a basic `mailto:` link to a professional, reliable customer inquiry pipeline. Built entirely with Infrastructure as Code (Terraform) on AWS.
 
