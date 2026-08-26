@@ -4,7 +4,7 @@ A serverless contact form system built for TravelEase Inc., a fictional travel a
 
 **Demo:** deployed temporarily for testing and recording, then torn down via `terraform destroy` to avoid ongoing hosting costs on a public, unauthenticated endpoint. See the full walkthrough video below for a live demonstration of the working system.
 **Video walkthrough:** _add your video link here_
-**Architecture diagram:** see `/docs/architecture-diagram.png`
+**Architecture diagram:** see `/docs/TravelEase Contact Form.png` `/docs/travelease_monitoring_addition.png`
 
 ---
 
@@ -31,7 +31,7 @@ User (browser)
 Amazon S3 (static site: HTML/CSS/JS)
    │  user fills out form
    ▼
-Honeypot field + Google reCAPTCHA (client-side spam checks)
+Honeypot field (client-side spam check)
    │
    ▼
 Amazon API Gateway  ── POST /submit ── AWS_PROXY integration
@@ -79,11 +79,21 @@ Every compute and data component in this stack — S3, Lambda, API Gateway, Dyna
 
 ## Security & Spam Protection
 
-- **Honeypot field** — a form field hidden from real users via off-screen CSS positioning, but visible to bots that parse raw HTML. If it's filled in on submit, Lambda silently drops the request without writing to the database or sending email.
-- **Google reCAPTCHA** — a second, independent layer of bot detection at the client.
+- **Honeypot field** — a form field hidden from real users via off-screen CSS positioning, but visible to bots that parse raw HTML. If it's filled in on submit, Lambda silently drops the request without writing to the database or sending email. Implemented in both `frontend/index.html` and checked in `lambda/index.js`.
 - **Least-privilege IAM** — the Lambda execution role can write to exactly one DynamoDB table (scoped by ARN), send email via SES, and write its own logs — nothing broader.
 - **S3 bucket policy** — scoped to `s3:GetObject` only; no write or delete access is granted publicly.
 - **CORS** — API Gateway is configured with a full OPTIONS preflight handler (mock integration) alongside the POST method, so only the intended origin's requests are accepted by the browser.
+
+### Future Enhancement: Google reCAPTCHA
+
+The original design called for a second, independent spam-detection layer alongside the honeypot — Google reCAPTCHA. This is **not yet implemented** in the current build; only the honeypot field is live. Adding it would mean:
+
+1. Registering a reCAPTCHA site key + secret key with Google.
+2. Loading Google's reCAPTCHA script and rendering the widget in `index.html`.
+3. Sending the resulting token alongside the form data in `script.js`.
+4. Verifying that token server-side in Lambda — a call to Google's `siteverify` endpoint using the secret key — before proceeding with validation, storage, and email.
+
+Left as a deliberate next step rather than built now, since the honeypot alone already filters the overwhelming majority of naive automated spam for a low-traffic form like this one, and adding a third-party verification call introduces an external dependency (and a new failure mode to handle) worth doing carefully rather than bolting on at the last minute.
 
 ## Error Handling & Resilience
 
