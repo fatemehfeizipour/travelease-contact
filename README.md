@@ -10,11 +10,6 @@ See the full walkthrough video below for a live demonstration of the working sys
 
 _add your video link here_
 
-**Architecture diagram:** 
-
-![TravelEase_Contact_Form](docs/TravelEase_Contact_Form.png) 
-![travelease_monitoring_addition](docs/travelease_monitoring_addition.png)
-
 ---
 
 ## The Problem
@@ -65,7 +60,12 @@ AWS Lambda (Node.js)
 Amazon CloudWatch watches the Lambda's Errors metric ──▶ alarms to the same SNS topic
 ```
 
-Full diagram: `/docs/architecture-diagram.png`
+Full diagram: 
+
+**Architecture diagram:** 
+
+![TravelEase_Contact_Form](docs/TravelEase_Contact_Form.png) 
+![travelease_monitoring_addition](docs/travelease_monitoring_addition.png)
 
 ## Why Serverless
 
