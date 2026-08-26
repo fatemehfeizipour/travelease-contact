@@ -1,162 +1,92 @@
-# TravelEase Contact Form — Serverless AWS Solution
+# Walkthrough Video Script — TravelEase Contact Form
 
-A serverless contact form system built for TravelEase Inc., a fictional travel agency transitioning from a basic `mailto:` link to a professional, reliable customer inquiry pipeline. Built entirely with Infrastructure as Code (Terraform) on AWS.
+Assumes: infrastructure already deployed (`terraform apply` already run), frontend already uploaded to S3 and connected to the live API URL. This script is for a post-deployment explainer + live demo, not a recording of the deploy process itself.
 
-**Live demo:** _add your S3 website URL here after deployment_
-**Architecture diagram:** see `/docs/architecture-diagram.png`
+**Target length:** 7–10 minutes
 
 ---
 
-## The Problem
+## 1. Cold open — the problem (30–45 sec)
 
-TravelEase's website used a `mailto:` link for customer inquiries. That approach had real business consequences:
+*(Show: nothing yet, or a simple slide/text with the problem statement)*
 
-- No confirmation that an inquiry was received — a customer asking about a $5,000 vacation package at 9 PM had no reason to wait around, and might book with a competitor instead.
-- No reference number, no way to follow up.
-- Inquiries could be missed entirely (misconfigured email clients, spam filters).
-- Staff manually copied inquiries into spreadsheets, with no standardized format and no way to track response times.
-- No spam protection, no data validation, no backup of communication history.
+> "This is TravelEase — a fictional travel agency whose website used a plain mailto link for customer inquiries. That sounds harmless, but it has real costs: no confirmation that an inquiry was received, no reference number, no spam protection, and no record on the business side beyond whatever staff manually copied into a spreadsheet. A customer inquiring about a $5,000 vacation package at 9 PM has no reason to wait for a reply that might never come.
 
-## The Solution
+> I rebuilt this as a fully serverless contact form on AWS, deployed entirely with Terraform. Let me walk you through it."
 
-A fully serverless, pay-per-use architecture that replaces the `mailto:` link with a validated, spam-protected contact form backed by managed AWS services — no servers to provision or patch, and cost that scales to zero when there's no traffic.
+## 2. Architecture diagram (60–90 sec)
 
-## Architecture
+*(Show: the architecture diagram)*
 
-```
-User (browser)
-   │
-   ▼
-Amazon S3 (static site: HTML/CSS/JS)
-   │  user fills out form
-   ▼
-Honeypot field + Google reCAPTCHA (client-side spam checks)
-   │
-   ▼
-Amazon API Gateway  ── POST /submit ── AWS_PROXY integration
-   │
-   ▼
-AWS Lambda (Node.js)
-   ├── validates all fields
-   ├── generates a unique reference number (UUID)
-   ├── writes the submission to DynamoDB
-   └── sends two emails via Amazon SES
-        │
-        ├──▶ Amazon DynamoDB   (submission storage)
-        └──▶ Amazon SES        ├─ confirmation email → customer
-                                └─ notification email → business
-```
+> "Here's the full flow. A visitor loads the site from an S3 bucket configured for static website hosting — plain HTML, CSS, and JavaScript, no servers involved. When they submit the form, two client-side spam checks run first — a honeypot field and Google reCAPTCHA — before anything is sent.
 
-Full diagram: `/docs/architecture-diagram.png`
+> The request hits API Gateway, which forwards it to a Lambda function using proxy integration. Lambda validates every field, generates a unique reference number, writes the submission to DynamoDB, and sends two emails through SES — a confirmation to the customer with their reference number, and a detailed notification to the business with every field they submitted.
 
-## Why Serverless
+> Every piece of this is pay-per-use — no idle EC2 instances, no provisioned database capacity sitting there unused. I actually started with a different design — a VPC-based architecture with EC2 and a load balancer — before realizing it didn't fit the brief's requirement for serverless, cost-efficient infrastructure. I'll touch on that decision in a minute."
 
-Every compute and data component in this stack — S3, Lambda, API Gateway, DynamoDB, SES — is pay-per-use with no idle infrastructure to provision, patch, or pay for around the clock. This was a deliberate architectural choice, not a default: an earlier draft of this design used EC2, an Application Load Balancer, NAT Gateways, and DocumentDB inside a VPC — a perfectly valid pattern for some workloads, but the wrong fit here, since it introduces fixed hourly costs and operational overhead for a workload that's bursty and low-volume (a contact form doesn't need 24/7 compute).
+## 3. Live demo (90–120 sec)
 
-## Tech Stack
+*(Show: the actual live website, screen-recorded)*
 
-| Layer | Service | Purpose |
-|---|---|---|
-| Frontend hosting | Amazon S3 (static website hosting) | Serves `index.html`, `style.css`, `script.js` |
-| API layer | Amazon API Gateway (REST API, Lambda proxy integration) | Public HTTPS endpoint, CORS, request routing |
-| Compute | AWS Lambda (Node.js 20.x) | Validation, business logic, orchestration |
-| Storage | Amazon DynamoDB (on-demand / pay-per-request) | Stores each submission with a unique ID |
-| Email | Amazon SES | Sends customer confirmation + business notification |
-| IAM | Least-privilege execution role | Scoped `dynamodb:PutItem` (single table ARN), `ses:SendEmail`, CloudWatch Logs actions |
-| IaC | Terraform | All 22 resources defined as code, zero manual console resource creation |
+> "Let's see it working. Here's the live form." *(fill out the form with realistic sample data on screen)*
 
-## Security & Spam Protection
+> "I'll submit this." *(click submit, show the loading state, then the success message)*
 
-- **Honeypot field** — a form field hidden from real users via off-screen CSS positioning, but visible to bots that parse raw HTML. If it's filled in on submit, Lambda silently drops the request without writing to the database or sending email.
-- **Google reCAPTCHA** — a second, independent layer of bot detection at the client.
-- **Least-privilege IAM** — the Lambda execution role can write to exactly one DynamoDB table (scoped by ARN), send email via SES, and write its own logs — nothing broader.
-- **S3 bucket policy** — scoped to `s3:GetObject` only; no write or delete access is granted publicly.
-- **CORS** — API Gateway is configured with a full OPTIONS preflight handler (mock integration) alongside the POST method, so only the intended origin's requests are accepted by the browser.
+> "Notice it returns a reference number immediately — that's the piece the old mailto link never gave anyone."
 
-## Repository Structure
+*(Cut to email inbox)*
 
-```
-travelease-contact/
-├── frontend/
-│   ├── index.html
-│   ├── style.css
-│   └── script.js
-├── infrastructure/
-│   ├── provider.tf
-│   ├── s3.tf
-│   ├── dynamodb.tf
-│   ├── iam.tf
-│   ├── lambda.tf
-│   ├── lambda_permission.tf
-│   ├── api_gateway.tf
-│   ├── deployment_stage.tf
-│   ├── ses.tf
-│   ├── archive.tf
-│   ├── outputs.tf
-│   ├── variables.tf
-│   ├── terraform.tfvars
-│   └── backend.tf
-├── lambda/
-│   ├── index.js
-│   └── package.json
-└── docs/
-    └── architecture-diagram.png
-```
+> "Here's the confirmation email that just landed — sent via SES, includes the same reference number." *(scroll to show it)*
 
-## Deployment
+> "And here's the business notification — same submission, but with every field included, so nothing has to be manually re-typed into a spreadsheet."
 
-**Prerequisites**
-- AWS account with an IAM user configured for CLI access (`aws configure`)
-- Terraform installed
-- Two SES-verified email addresses (sender + a recipient stand-in, since new AWS accounts start in SES sandbox mode)
+*(Cut to DynamoDB console, or AWS CLI query)*
 
-**Steps**
+> "And here's that same submission sitting in DynamoDB, with the reference number as the primary key."
 
-```bash
-# 1. Clone and enter the infrastructure directory
-git clone https://github.com/fatemehfeizipour/travelease-contact.git
-cd travelease-contact/infrastructure
+## 4. Infrastructure as code (90–120 sec)
 
-# 2. Initialize Terraform
-terraform init
+*(Show: VS Code, infrastructure/ folder)*
 
-# 3. Review the plan
-terraform plan
+> "All of this — 22 AWS resources — is defined in Terraform, organized by service: S3, DynamoDB, IAM, Lambda, API Gateway, SES."
 
-# 4. Deploy (creates 22 AWS resources)
-terraform apply
+*(Open iam.tf)*
 
-# 5. Note the outputs
-#    - gateway_url → your API Gateway invoke URL
-#    - s3_url      → your static website endpoint
-```
+> "One thing I want to highlight: least-privilege IAM. The Lambda execution role can write to exactly one DynamoDB table — scoped by ARN, not a wildcard — and send email through SES. I actually ran into a real bug while building this: I originally put the DynamoDB write permission and the SES/logging permissions in a single policy statement. Turns out a single statement applies every resource in its list to every action in it — so a wildcarded resource for SES was silently un-scoping my tightly-scoped DynamoDB permission too. Splitting it into two separate statements fixed it."
 
-```bash
-# 6. Install Lambda dependencies before Terraform packages the function
-cd ../lambda
-npm install
+*(Open api_gateway.tf, scroll to the OPTIONS-related resources)*
 
-# 7. Re-apply so the zip includes node_modules
-cd ../infrastructure
-terraform apply
-```
+> "Another one — CORS preflight. A working POST integration on its own isn't enough, because browsers send an automatic OPTIONS request first for cross-origin POSTs like this one. Without an OPTIONS method handled by API Gateway directly — via a mock integration, no Lambda call needed — that preflight fails before the real request is ever sent."
 
-**Connect frontend to backend**
+## 5. Resilience and monitoring (60–75 sec)
 
-Open `frontend/script.js` and set:
-```js
-const API_URL = "<your gateway_url output>/submit";
-```
+*(Show: index.js, scroll to the DynamoDB write and the two SES try/catch blocks)*
 
-Then upload the three frontend files to your S3 bucket (via console, CLI, or a small `aws s3 sync` command) and visit the `s3_url` output.
+> "One deliberate detail here: the DynamoDB write has no error handling — if it fails, the function crashes and the customer correctly sees an error, because their submission genuinely wasn't saved. But each SES call has its own separate try/catch. That's not one shared block around both emails — two independent ones. If the customer's confirmation email fails, the business notification still gets sent regardless, and the customer still sees success, because their data was already safely stored before either email was attempted. Email failures get logged to CloudWatch instead of surfaced to the customer."
 
-## What I Learned
+*(Show: monitoring.tf or the CloudWatch console)*
 
-- Designing a request flow end-to-end before writing any code — tracing exactly what happens from form submission to email delivery — made every infrastructure decision (dependency order, IAM scope, integration type) fall out naturally instead of feeling arbitrary.
-- The difference between identity-based IAM policies ("what can I do") and resource-based policies ("who can call me") — and why AWS requires an explicit `aws_lambda_permission` grant even after API Gateway and Lambda already reference each other.
-- CORS preflight requests are a separate, silent requirement — a working POST integration is not enough on its own; the browser's OPTIONS preflight has to be handled explicitly via a mock integration.
-- Least-privilege IAM in practice means splitting a policy into multiple statements when different actions need different resource scopes, since a single statement applies its resource list to every action in it.
+> "On top of that, there's a CloudWatch alarm on this Lambda's error count — set to fire on a single error within five minutes, since this is low-traffic enough that any failure is worth knowing about right away. It routes to an SNS topic, which also receives SES's own bounce, complaint, and delivery events — so if an email actually fails to deliver, that surfaces as a notification too, not just a Lambda-level error. The submissions table also has point-in-time recovery enabled."
 
-## Author
+## 6. Why serverless — the design decision (45–60 sec)
 
-Fatemeh Feyzipour — [LinkedIn](https://www.linkedin.com/in/fatemeh-feyzipour) · [GitHub](https://github.com/fatemehfeizipour)
+*(Show: side-by-side or verbal comparison, optionally the earlier VPC diagram if you kept it)*
+
+> "Worth mentioning — my first architecture draft for this reused a pattern from an earlier project: VPC, public and private subnets, an Application Load Balancer, NAT Gateway, EC2, DocumentDB. It's a legitimate pattern, just the wrong one here. None of that satisfies 'serverless, no idle servers, pay only for what you use' — EC2 instances and NAT Gateways cost money whether anyone submits the form or not. Going back through the brief's actual requirements line by line is what caught it before I built the wrong thing."
+
+## 7. Close (20–30 sec)
+
+> "That's the full build — S3, API Gateway, Lambda, DynamoDB, and SES, entirely serverless, entirely defined in Terraform. Source code and a full write-up are linked below. Thanks for watching."
+
+---
+
+## Recording checklist
+
+- [ ] Deployment fully applied and stable (no `terraform apply` errors)
+- [ ] SNS email subscription confirmed (check inbox for the confirmation link — subscription stays "pending" until clicked)
+- [ ] Frontend uploaded to S3, `script.js` pointing at the real API URL
+- [ ] Test submission works end-to-end (confirmation email, business email, DynamoDB entry) — verified once *before* recording, using non-final test data
+- [ ] Have DynamoDB console (or a CLI query) ready to switch to
+- [ ] Have both test inboxes (sender alias / customer alias) open and visible
+- [ ] Screen resolution/zoom level checked so code and console are readable in the recording
+- [ ] Close unrelated tabs/notifications before recording
