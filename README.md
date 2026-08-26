@@ -2,7 +2,8 @@
 
 A serverless contact form system built for TravelEase Inc., a fictional travel agency transitioning from a basic `mailto:` link to a professional, reliable customer inquiry pipeline. Built entirely with Infrastructure as Code (Terraform) on AWS.
 
-**Live demo:** _add your S3 website URL here after deployment_
+**Demo:** deployed temporarily for testing and recording, then torn down via `terraform destroy` to avoid ongoing hosting costs on a public, unauthenticated endpoint. See the full walkthrough video below for a live demonstration of the working system.
+**Video walkthrough:** _add your video link here_
 **Architecture diagram:** see `/docs/architecture-diagram.png`
 
 ---
@@ -199,6 +200,7 @@ Neither is "wrong" — it's a trade-off between simplicity/cost and architectura
 - Least-privilege IAM in practice means splitting a policy into multiple statements when different actions need different resource scopes, since a single statement applies its resource list to every action in it.
 - Not every operation in a function deserves the same failure behavior. Deciding *which* calls should be allowed to fail the whole request (the DynamoDB write) versus which should fail quietly and independently of each other (each SES call, in its own `try/catch`) mattered more than just "add error handling everywhere."
 - A written spec and a circulating diagram can disagree — the implementation guide's text and prescribed file structure (one `index.js`) both pointed to a single Lambda, while a separate diagram showed three. Checking the primary source (the actual brief text) resolved it, rather than assuming the more complex-looking option was the intended one.
+- Public, unauthenticated endpoints (by design — a contact form can't require a login) don't have a hard ceiling on pay-per-use cost unless you add one. Rather than leave the demo running indefinitely, I deployed it temporarily for testing and the walkthrough recording, then destroyed the stack — a live URL is nice, but not worth an open-ended cost commitment for a portfolio piece.
 
 ## Author
 
