@@ -12,3 +12,21 @@ resource "aws_lambda_function" "contact_form_lambda" {
     }
   }
 }
+
+resource "aws_cloudwatch_metric_alarm" "lambda_error_contact_form" {
+  alarm_name = "lambda_error_contact_form"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods = 1
+  metric_name = "Errors"
+  namespace = "AWS/Lambda"
+  period = 300
+  statistic = "Sum"
+  threshold = 1
+  alarm_description = "Lambda error for contact form"
+  alarm_actions = [aws_sns_topic.ses_delivery_notification.arn]
+
+  dimensions = {
+    FunctionName = aws_lambda_function.contact_form_lambda.function_name
+  }
+
+}

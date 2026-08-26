@@ -57,7 +57,7 @@ resource "aws_api_gateway_method_response" "option_response" {
 }
 }
 resource "aws_api_gateway_integration_response" "option_integration_response" {
- rest_api_id = aws_api_gateway_rest_api.travelease_contact_api.id 
+    rest_api_id = aws_api_gateway_rest_api.travelease_contact_api.id 
     resource_id = aws_api_gateway_resource.api_path.id 
     http_method = "OPTIONS"
     status_code = "200"  

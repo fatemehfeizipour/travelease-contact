@@ -8,4 +8,8 @@ resource "aws_dynamodb_table" "database_id" {
       type = "S"
         
     }
+
+    point_in_time_recovery {
+      enabled = true
+    }
 }
