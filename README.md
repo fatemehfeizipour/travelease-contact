@@ -4,7 +4,9 @@ A serverless contact form system built for TravelEase Inc., a fictional travel a
 
 **Demo:** deployed temporarily for testing and recording, then torn down via `terraform destroy` to avoid ongoing hosting costs on a public, unauthenticated endpoint. See the full walkthrough video below for a live demonstration of the working system.
 **Video walkthrough:** _add your video link here_
-**Architecture diagram:** see `/docs/TravelEase Contact Form.png` `/docs/travelease_monitoring_addition.png`
+**Architecture diagram:** see 
+[!TravelEase_Contact_Form](/docs/TravelEase_Contact_Form.png) 
+[!travelease_monitoring_addition](/docs/travelease_monitoring_addition.png)
 
 ---
 
