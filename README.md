@@ -12,7 +12,6 @@ _add your video link here_
 
 **Architecture diagram:** 
 
-see 
 ![TravelEase_Contact_Form](docs/TravelEase_Contact_Form.png) 
 ![travelease_monitoring_addition](docs/travelease_monitoring_addition.png)
 
