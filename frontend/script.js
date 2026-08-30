@@ -1,7 +1,7 @@
 // TODO: replace with your actual API Gateway invoke URL + /submit
 // This is the "gateway_url" output from Terraform, e.g.:
 // https://abc123xyz.execute-api.ca-central-1.amazonaws.com/prod/submit
-const API_URL = "https://REPLACE_ME.execute-api.ca-central-1.amazonaws.com/prod/submit";
+const API_URL = "https://fcbio1ako6.execute-api.ca-central-1.amazonaws.com/prod/submit";
 
 const form = document.getElementById("contactForm");
 const submitBtn = document.getElementById("submitBtn");

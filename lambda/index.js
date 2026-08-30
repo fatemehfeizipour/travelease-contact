@@ -124,7 +124,7 @@ exports.handler = async (event) => {
             headers: {
                 "Access-Control-Allow-Origin": "*"
             },
-            body: JSON.stringify({ message: "Thank you! Your reference number is"+ referenceNumber +"Submission received successfully"})
+            body: JSON.stringify({ message: "Thank you! Your reference number is "+ referenceNumber +" Submission received successfully"})
 }
 
 
