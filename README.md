@@ -4,11 +4,11 @@ A serverless contact form system built for TravelEase Inc., a fictional travel a
 
 **Demo:** deployed temporarily for testing and recording, then torn down via `terraform destroy` to avoid ongoing hosting costs on a public, unauthenticated endpoint.
 
-See the full walkthrough video below for a live demonstration of the working system.
+See the full walkthrough video and medium blog below for a live demonstration of the working system.
 
-**Video walkthrough:**
+[**Video walkthrough**](https://lnkd.in/p/gUA5MNVf)
 
-_add your video link here_
+[**Medium blog**](https://medium.com/@fatemehfeizipur/from-a-mailto-link-to-a-serverless-contact-form-building-traveleases-inquiry-system-on-aws-fc4404b623f0?sharedUserId=fatemehfeizipur)
 
 ---
 
